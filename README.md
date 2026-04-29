@@ -1,6 +1,12 @@
 # actions/dependency-review-action
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/actions/dependency-review-action](https://github.com/actions/dependency-review-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v4.9.0 | [`v4.9.0`](https://github.com/chainguard-actions/dependency-review-action/tree/v4.9.0) | — |
 
 ## Privacy
 
