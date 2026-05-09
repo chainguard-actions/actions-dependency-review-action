@@ -1,4 +1,6 @@
 {
-  "upstream": "actions/dependency-review-action",
-  "version": "v4.9.0"
+  "owner": "actions",
+  "repo": "dependency-review-action",
+  "version": "",
+  "url": "https://github.com/actions/dependency-review-action"
 }

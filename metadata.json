@@ -2,5 +2,6 @@
   "owner": "actions",
   "name": "dependency-review-action",
   "visibility": "internal",
-  "description": "A GitHub Action for detecting vulnerable dependencies and invalid licenses in your PRs"
+  "description": "A GitHub Action for detecting vulnerable dependencies and invalid licenses in your PRs",
+  "block_publish": false
 }
