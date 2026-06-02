@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test license inputs
 on:
   workflow_dispatch:
 jobs:
@@ -16,15 +16,13 @@ jobs:
         continue-on-error: true
         with:
           repo-token: ${{ github.token }}
-          fail-on-severity: low
-          fail-on-scopes: runtime, development
-          vulnerability-check: "true"
-          license-check: "true"
+          allow-licenses: "MIT, Apache-2.0"
+          deny-licenses: "GPL-3.0"
+          allow-dependencies-licenses: "pkg:npm/express, pkg:pypi/pycrypto"
           warn-only: "true"
-          comment-summary-in-pr: never
           base-ref: main
           head-ref: feature-branch
       - name: Assert action ran
         run: |
-          echo "Action completed (warn-only mode)"
+          echo "Action completed with license inputs"
           echo "PASS"

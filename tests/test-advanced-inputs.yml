@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test advanced inputs
 on:
   workflow_dispatch:
 jobs:
@@ -16,15 +16,17 @@ jobs:
         continue-on-error: true
         with:
           repo-token: ${{ github.token }}
-          fail-on-severity: low
-          fail-on-scopes: runtime, development
-          vulnerability-check: "true"
-          license-check: "true"
+          config-file: ".github/dependency-review-config.yml"
+          external-repo-token: ${{ github.token }}
+          retry-on-snapshot-warnings: "true"
+          retry-on-snapshot-warnings-timeout: "30"
+          show-openssf-scorecard: "true"
+          warn-on-openssf-scorecard-level: "5"
+          show-patched-versions: "true"
           warn-only: "true"
-          comment-summary-in-pr: never
           base-ref: main
           head-ref: feature-branch
       - name: Assert action ran
         run: |
-          echo "Action completed (warn-only mode)"
+          echo "Action completed with advanced inputs"
           echo "PASS"

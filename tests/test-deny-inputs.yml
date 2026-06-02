@@ -1,4 +1,4 @@
-name: Test basic usage
+name: Test deny and advisory inputs
 on:
   workflow_dispatch:
 jobs:
@@ -16,15 +16,13 @@ jobs:
         continue-on-error: true
         with:
           repo-token: ${{ github.token }}
-          fail-on-severity: low
-          fail-on-scopes: runtime, development
-          vulnerability-check: "true"
-          license-check: "true"
+          deny-packages: "pkg:npm/lodash"
+          deny-groups: "pkg:npm/lodash/"
+          allow-ghsas: "GHSA-abcd-1234-5679"
           warn-only: "true"
-          comment-summary-in-pr: never
           base-ref: main
           head-ref: feature-branch
       - name: Assert action ran
         run: |
-          echo "Action completed (warn-only mode)"
+          echo "Action completed with deny and advisory inputs"
           echo "PASS"
