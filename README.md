@@ -1,6 +1,6 @@
 # actions/dependency-review-action
 
-A GitHub Action for detecting vulnerable dependencies and invalid licenses in your PRs
+Prevent the introduction of dependencies with known vulnerabilities
 
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/actions/dependency-review-action](https://github.com/actions/dependency-review-action).
 
@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v4.9.0 | [`v4.9.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v4.9.0) | — |
+| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v5.0.0) | [`a1d282b`](https://github.com/actions/dependency-review-action/commit/a1d282b36b6f3519aa1f3fc636f609c47dddb294) |
 
 ## Privacy
 
