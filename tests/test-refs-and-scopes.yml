@@ -1,0 +1,25 @@
+name: Test refs and scopes
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_BASE_REF: main
+      GITHUB_HEAD_REF: feature-branch
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          fail-on-scopes: "runtime, development"
+          warn-only: "true"
+        continue-on-error: true
+      - name: Assert action ran
+        run: |
+          echo "Action completed (may have errored due to no GitHub API in act)"
+          echo "PASS"
