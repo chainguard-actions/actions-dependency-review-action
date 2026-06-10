@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+# Load the scan_pr library
+require_relative 'scan_pr_lib'
+
+# Create and run the scanner
+scanner = ScanPr.new
+scanner.run(ARGV)

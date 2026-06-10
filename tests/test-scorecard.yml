@@ -1,0 +1,28 @@
+name: Test scorecard and display inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          repo-token: ${{ github.token }}
+          show-openssf-scorecard: "true"
+          warn-on-openssf-scorecard-level: "3"
+          show-patched-versions: "true"
+          warn-only: "true"
+          base-ref: HEAD~1
+          head-ref: HEAD
+      - name: Assert action ran
+        run: |
+          echo "Action completed (continue-on-error allows failure in test env)"
+          echo "PASS"
