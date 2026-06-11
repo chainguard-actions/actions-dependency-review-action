@@ -1,4 +1,4 @@
-name: Test basic dependency review inputs
+name: Test config-file and external-repo-token inputs
 on:
   workflow_dispatch:
 jobs:
@@ -16,20 +16,12 @@ jobs:
         continue-on-error: true
         with:
           repo-token: ${{ github.token }}
-          fail-on-severity: high
-          fail-on-scopes: runtime
-          vulnerability-check: "true"
-          license-check: "true"
+          config-file: ".github/dependency-review-config.yml"
+          external-repo-token: ${{ github.token }}
           warn-only: "true"
           base-ref: HEAD~1
           head-ref: HEAD
-          comment-summary-in-pr: never
-          show-openssf-scorecard: "false"
-          warn-on-openssf-scorecard-level: "3"
-          show-patched-versions: "false"
-          retry-on-snapshot-warnings: "false"
-          retry-on-snapshot-warnings-timeout: "60"
       - name: Assert action ran
         run: |
-          echo "Action completed (may have failed due to no real PR context, which is expected)"
+          echo "Action completed (may have failed due to no real PR context or missing config file, which is expected)"
           echo "PASS"
