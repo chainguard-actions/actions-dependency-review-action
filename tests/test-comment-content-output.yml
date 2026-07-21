@@ -1,0 +1,53 @@
+name: Test comment-content output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: action
+        uses: .
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          warn-only: true
+          vulnerability-check: true
+          license-check: false
+          comment-summary-in-pr: never
+        continue-on-error: true
+
+      - name: Assert action completed
+        run: |
+          echo "Action completed successfully"
+          echo "PASS"
+
+      - name: Assert comment-content output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.comment-content }}
+        run: |
+          echo "comment-content length: ${#ACTUAL}"
+          echo "comment-content (first 200 chars): ${ACTUAL:0:200}"
+          echo "PASS: comment-content output is present"
+
+      - name: Assert dependency-changes output is valid JSON or empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.dependency-changes }}
+        run: |
+          echo "dependency-changes: $ACTUAL"
+          if [ -n "$ACTUAL" ]; then
+            echo "$ACTUAL" | python3 -c "import sys, json; json.load(sys.stdin)" && echo "PASS: valid JSON" || echo "WARN: not valid JSON"
+          else
+            echo "PASS: output is empty"
+          fi

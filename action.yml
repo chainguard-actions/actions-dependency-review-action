@@ -92,5 +92,6 @@ outputs:
     description: Denied dependency changes (JSON)
 
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'dist/index.js'

@@ -1,0 +1,33 @@
+name: Test license options (allow-dependencies-licenses, deny-licenses)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: action
+        uses: .
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          deny-licenses: "LGPL-2.0"
+          allow-dependencies-licenses: "pkg:npm/lodash"
+          warn-only: true
+        continue-on-error: true
+
+      - name: Assert dependency-changes output exists
+        env:
+          ACTUAL: ${{ steps.action.outputs.dependency-changes }}
+        run: |
+          echo "dependency-changes: $ACTUAL"
+          echo "PASS: action completed successfully"

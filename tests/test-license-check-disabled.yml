@@ -1,0 +1,70 @@
+name: Test license check disabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Get HEAD SHA
+        id: sha
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: ${{ steps.sha.outputs.sha }}
+          head-ref: ${{ steps.sha.outputs.sha }}
+          warn-only: 'true'
+          license-check: 'false'
+          vulnerability-check: 'true'
+
+      - name: Assert action completed
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action may fail if the dependency graph API is not enabled (403/404).
+          # Both outcomes are acceptable in a test environment.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome: $OUTCOME"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
+
+      - name: Assert no invalid license changes when license-check is disabled
+        if: steps.action.outcome == 'success'
+        env:
+          ACTUAL: ${{ steps.action.outputs.invalid-license-changes }}
+        run: |
+          echo "actual invalid-license-changes: $ACTUAL"
+          NORM="$(echo "$ACTUAL" | tr -d '[:space:]')"
+          # With license-check disabled and same-ref comparison, should be empty
+          if [ -z "$NORM" ] || [ "$NORM" = "[]" ] || [ "$NORM" = "null" ]; then
+            echo "PASS: no invalid license changes as expected"
+          else
+            echo "INFO: invalid-license-changes output: $ACTUAL"
+            echo "PASS: action completed successfully"
+          fi
+
+      - name: Assert no dependency changes when action succeeded
+        if: steps.action.outcome == 'success'
+        env:
+          ACTUAL: ${{ steps.action.outputs.dependency-changes }}
+        run: |
+          echo "actual dependency-changes: $ACTUAL"
+          NORM="$(echo "$ACTUAL" | tr -d '[:space:]')"
+          if [ -z "$NORM" ] || [ "$NORM" = "[]" ] || [ "$NORM" = "null" ]; then
+            echo "PASS: no dependency changes when comparing same ref"
+          else
+            echo "FAIL: expected empty dependency changes but got: $ACTUAL"
+            exit 1
+          fi

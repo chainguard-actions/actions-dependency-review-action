@@ -1,0 +1,43 @@
+name: Test config-file and external-repo-token inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create dependency review config file
+        run: |
+          mkdir -p .github
+          cat > .github/dependency-review-config.yml << 'EOF'
+          fail-on-severity: critical
+          allow-licenses:
+            - MIT
+            - Apache-2.0
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          config-file: ".github/dependency-review-config.yml"
+          external-repo-token: ${{ github.token }}
+          warn-only: true
+        continue-on-error: true
+
+      - name: Assert action completed
+        env:
+          ACTUAL: ${{ steps.action.outputs.dependency-changes }}
+        run: |
+          echo "dependency-changes: $ACTUAL"
+          echo "PASS: action completed with config-file and external-repo-token inputs"

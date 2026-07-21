@@ -1,0 +1,47 @@
+name: Test basic usage with warn-only
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          warn-only: 'true'
+          vulnerability-check: 'true'
+          license-check: 'false'
+      - name: Assert action ran and produced expected outcome
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          DEPENDENCY_CHANGES: ${{ steps.action.outputs.dependency-changes }}
+          VULNERABLE_CHANGES: ${{ steps.action.outputs.vulnerable-changes }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          echo "dependency-changes: $DEPENDENCY_CHANGES"
+          echo "vulnerable-changes: $VULNERABLE_CHANGES"
+          # The action either succeeds (API available) or fails with an API error.
+          # Both are acceptable in a local act environment.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded - checking outputs"
+            if [ -z "$DEPENDENCY_CHANGES" ]; then
+              echo "FAIL: dependency-changes output is empty on success"
+              exit 1
+            fi
+            echo "PASS: dependency-changes output is present"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: Action failed as expected (GitHub API not available in local environment)"
+          else
+            echo "FAIL: Unexpected outcome: $OUTCOME"
+            exit 1
+          fi

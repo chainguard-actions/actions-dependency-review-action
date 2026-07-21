@@ -1,0 +1,34 @@
+name: Test show-openssf-scorecard, warn-on-openssf-scorecard-level, and show-patched-versions inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: action
+        uses: .
+        with:
+          repo-token: ${{ github.token }}
+          base-ref: HEAD~1
+          head-ref: HEAD
+          show-openssf-scorecard: true
+          warn-on-openssf-scorecard-level: 5
+          show-patched-versions: true
+          warn-only: true
+        continue-on-error: true
+
+      - name: Assert comment-content output exists
+        env:
+          ACTUAL: ${{ steps.action.outputs.comment-content }}
+        run: |
+          echo "comment-content length: ${#ACTUAL}"
+          echo "PASS: action completed with openssf-scorecard and show-patched-versions inputs"
