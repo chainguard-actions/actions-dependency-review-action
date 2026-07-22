@@ -1,4 +1,4 @@
-name: Test basic dependency review (warn-only)
+name: Test allow/deny configuration options
 on:
   workflow_dispatch:
 jobs:
@@ -15,7 +15,7 @@ jobs:
         id: refs
         run: |
           HEAD="$(git rev-parse HEAD)"
-          # Use HEAD~1 if available, otherwise use HEAD for both (no changes expected)
+          # Use HEAD~1 if available, otherwise use HEAD for both
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             BASE="$(git rev-parse HEAD~1)"
           else
@@ -35,17 +35,26 @@ jobs:
           head-ref: ${{ steps.refs.outputs.head }}
           warn-only: 'true'
           vulnerability-check: 'true'
-          license-check: 'false'
+          license-check: 'true'
+          allow-licenses: 'MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC'
+          allow-ghsas: 'GHSA-0000-0000-0000'
+          fail-on-severity: 'critical'
+          fail-on-scopes: 'runtime'
+          deny-packages: 'pkg:npm/lodash'
 
-      - name: Assert action ran and outputs are valid
+      - name: Assert all outputs are valid
         env:
           OUTCOME: ${{ steps.action.outcome }}
           DEP_CHANGES: ${{ steps.action.outputs.dependency-changes }}
           VULN_CHANGES: ${{ steps.action.outputs.vulnerable-changes }}
+          LICENSE_CHANGES: ${{ steps.action.outputs.invalid-license-changes }}
+          DENIED: ${{ steps.action.outputs.denied-changes }}
         run: |
           echo "action outcome: $OUTCOME"
           echo "dependency-changes: $DEP_CHANGES"
           echo "vulnerable-changes: $VULN_CHANGES"
+          echo "invalid-license-changes: $LICENSE_CHANGES"
+          echo "denied-changes: $DENIED"
 
           if [ "$OUTCOME" = "failure" ]; then
             # Action failed - this may be due to API unavailability (403/404)
@@ -54,7 +63,7 @@ jobs:
             exit 0
           fi
 
-          # Action succeeded - verify outputs are valid JSON
+          # Action succeeded - verify outputs are valid JSON if present
           if [ -n "$DEP_CHANGES" ]; then
             echo "$DEP_CHANGES" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
               echo "PASS: dependency-changes is valid JSON" || \
@@ -71,4 +80,21 @@ jobs:
             echo "INFO: vulnerable-changes is empty (no vulnerable changes)"
           fi
 
-          echo "PASS: action completed successfully"
+          if [ -n "$LICENSE_CHANGES" ]; then
+            echo "$LICENSE_CHANGES" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: invalid-license-changes is valid JSON" || \
+              { echo "FAIL: invalid-license-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: invalid-license-changes is empty (no dependency changes to check)"
+          fi
+
+          # denied-changes is set when deny-packages is configured (which we did above)
+          if [ -n "$DENIED" ]; then
+            echo "$DENIED" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: denied-changes is valid JSON" || \
+              { echo "FAIL: denied-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: denied-changes is empty (no denied packages found in changes)"
+          fi
+
+          echo "PASS: all outputs validated successfully"

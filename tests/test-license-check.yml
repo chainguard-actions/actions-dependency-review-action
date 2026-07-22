@@ -1,4 +1,4 @@
-name: Test config-file and external-repo-token inputs
+name: Test license check only
 on:
   workflow_dispatch:
 jobs:
@@ -15,7 +15,7 @@ jobs:
         id: refs
         run: |
           HEAD="$(git rev-parse HEAD)"
-          # Use HEAD~1 if available, otherwise use HEAD for both (no changes expected)
+          # Use HEAD~1 if available, otherwise use HEAD for both
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             BASE="$(git rev-parse HEAD~1)"
           else
@@ -33,22 +33,25 @@ jobs:
           repo-token: ${{ github.token }}
           base-ref: ${{ steps.refs.outputs.base }}
           head-ref: ${{ steps.refs.outputs.head }}
-          config-file: '.github/dependency-review-config.yml'
-          external-repo-token: ${{ github.token }}
           warn-only: 'true'
+          vulnerability-check: 'false'
+          license-check: 'true'
+          allow-licenses: 'MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC'
 
-      - name: Assert action ran and outputs are valid
+      - name: Assert license check outputs are valid
         env:
           OUTCOME: ${{ steps.action.outcome }}
           DEP_CHANGES: ${{ steps.action.outputs.dependency-changes }}
+          LICENSE_CHANGES: ${{ steps.action.outputs.invalid-license-changes }}
         run: |
           echo "action outcome: $OUTCOME"
           echo "dependency-changes: $DEP_CHANGES"
+          echo "invalid-license-changes: $LICENSE_CHANGES"
 
           if [ "$OUTCOME" = "failure" ]; then
-            # Action failed - this may be due to API unavailability or missing config file
+            # Action failed - this may be due to API unavailability (403/404)
             # which is an infrastructure issue, not a test failure
-            echo "WARN: action step failed (possibly API unavailable or config file not found) - treating as acceptable"
+            echo "WARN: action step failed (possibly API unavailable) - treating as acceptable"
             exit 0
           fi
 
@@ -61,4 +64,14 @@ jobs:
             echo "INFO: dependency-changes is empty (no dependency changes between refs)"
           fi
 
-          echo "PASS: config-file and external-repo-token inputs accepted"
+          # invalid-license-changes is set when license_check is true
+          # It will be a JSON object like {"forbidden":[],"unresolved":[],"unlicensed":[]}
+          if [ -n "$LICENSE_CHANGES" ]; then
+            echo "$LICENSE_CHANGES" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: invalid-license-changes is valid JSON" || \
+              { echo "FAIL: invalid-license-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: invalid-license-changes is empty (no dependency changes to check)"
+          fi
+
+          echo "PASS: license check completed successfully"

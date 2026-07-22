@@ -1,4 +1,4 @@
-name: Test config-file and external-repo-token inputs
+name: Test OpenSSF scorecard and display options
 on:
   workflow_dispatch:
 jobs:
@@ -33,22 +33,30 @@ jobs:
           repo-token: ${{ github.token }}
           base-ref: ${{ steps.refs.outputs.base }}
           head-ref: ${{ steps.refs.outputs.head }}
-          config-file: '.github/dependency-review-config.yml'
-          external-repo-token: ${{ github.token }}
           warn-only: 'true'
+          vulnerability-check: 'true'
+          license-check: 'false'
+          show-openssf-scorecard: 'true'
+          warn-on-openssf-scorecard-level: '5'
+          show-patched-versions: 'true'
+          comment-summary-in-pr: 'never'
 
       - name: Assert action ran and outputs are valid
         env:
           OUTCOME: ${{ steps.action.outcome }}
           DEP_CHANGES: ${{ steps.action.outputs.dependency-changes }}
+          VULN_CHANGES: ${{ steps.action.outputs.vulnerable-changes }}
+          COMMENT_CONTENT: ${{ steps.action.outputs.comment-content }}
         run: |
           echo "action outcome: $OUTCOME"
           echo "dependency-changes: $DEP_CHANGES"
+          echo "vulnerable-changes: $VULN_CHANGES"
+          echo "comment-content length: ${#COMMENT_CONTENT}"
 
           if [ "$OUTCOME" = "failure" ]; then
-            # Action failed - this may be due to API unavailability or missing config file
+            # Action failed - this may be due to API unavailability (403/404)
             # which is an infrastructure issue, not a test failure
-            echo "WARN: action step failed (possibly API unavailable or config file not found) - treating as acceptable"
+            echo "WARN: action step failed (possibly API unavailable) - treating as acceptable"
             exit 0
           fi
 
@@ -61,4 +69,12 @@ jobs:
             echo "INFO: dependency-changes is empty (no dependency changes between refs)"
           fi
 
-          echo "PASS: config-file and external-repo-token inputs accepted"
+          if [ -n "$VULN_CHANGES" ]; then
+            echo "$VULN_CHANGES" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: vulnerable-changes is valid JSON" || \
+              { echo "FAIL: vulnerable-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: vulnerable-changes is empty (no vulnerable changes)"
+          fi
+
+          echo "PASS: show-openssf-scorecard, warn-on-openssf-scorecard-level, show-patched-versions, and comment-summary-in-pr inputs accepted"

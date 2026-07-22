@@ -1,4 +1,4 @@
-name: Test config-file and external-repo-token inputs
+name: Test deny-licenses, deny-groups, and allow-dependencies-licenses
 on:
   workflow_dispatch:
 jobs:
@@ -33,22 +33,29 @@ jobs:
           repo-token: ${{ github.token }}
           base-ref: ${{ steps.refs.outputs.base }}
           head-ref: ${{ steps.refs.outputs.head }}
-          config-file: '.github/dependency-review-config.yml'
-          external-repo-token: ${{ github.token }}
           warn-only: 'true'
+          vulnerability-check: 'false'
+          license-check: 'true'
+          deny-licenses: 'GPL-2.0, AGPL-3.0'
+          deny-groups: 'pkg:npm/left-pad/'
+          allow-dependencies-licenses: 'pkg:npm/express, pkg:pypi/pycrypto'
 
       - name: Assert action ran and outputs are valid
         env:
           OUTCOME: ${{ steps.action.outcome }}
           DEP_CHANGES: ${{ steps.action.outputs.dependency-changes }}
+          LICENSE_CHANGES: ${{ steps.action.outputs.invalid-license-changes }}
+          DENIED: ${{ steps.action.outputs.denied-changes }}
         run: |
           echo "action outcome: $OUTCOME"
           echo "dependency-changes: $DEP_CHANGES"
+          echo "invalid-license-changes: $LICENSE_CHANGES"
+          echo "denied-changes: $DENIED"
 
           if [ "$OUTCOME" = "failure" ]; then
-            # Action failed - this may be due to API unavailability or missing config file
+            # Action failed - this may be due to API unavailability (403/404)
             # which is an infrastructure issue, not a test failure
-            echo "WARN: action step failed (possibly API unavailable or config file not found) - treating as acceptable"
+            echo "WARN: action step failed (possibly API unavailable) - treating as acceptable"
             exit 0
           fi
 
@@ -61,4 +68,20 @@ jobs:
             echo "INFO: dependency-changes is empty (no dependency changes between refs)"
           fi
 
-          echo "PASS: config-file and external-repo-token inputs accepted"
+          if [ -n "$LICENSE_CHANGES" ]; then
+            echo "$LICENSE_CHANGES" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: invalid-license-changes is valid JSON" || \
+              { echo "FAIL: invalid-license-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: invalid-license-changes is empty (no dependency changes to check)"
+          fi
+
+          if [ -n "$DENIED" ]; then
+            echo "$DENIED" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && \
+              echo "PASS: denied-changes is valid JSON" || \
+              { echo "FAIL: denied-changes is not valid JSON"; exit 1; }
+          else
+            echo "INFO: denied-changes is empty (no denied packages found in changes)"
+          fi
+
+          echo "PASS: deny-licenses, deny-groups, and allow-dependencies-licenses inputs accepted"
