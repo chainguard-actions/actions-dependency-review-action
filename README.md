@@ -6,10 +6,10 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v4.9.0 | [`v4.9.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v4.9.0) | [`2031cfc`](https://github.com/actions/dependency-review-action/commit/2031cfc080254a8a887f58cffee85186f0e49e48) |
-| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v5.0.0) | [`a1d282b`](https://github.com/actions/dependency-review-action/commit/a1d282b36b6f3519aa1f3fc636f609c47dddb294) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v4.9.0 | [`v4.9.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v4.9.0) | [`2031cfc`](https://github.com/actions/dependency-review-action/commit/2031cfc080254a8a887f58cffee85186f0e49e48) | [`HARDENING.md`](https://github.com/chainguard-actions/actions-dependency-review-action/blob/v4.9.0/HARDENING.md) |
+| v5.0.0 | [`v5.0.0`](https://github.com/chainguard-actions/actions-dependency-review-action/tree/v5.0.0) | [`a1d282b`](https://github.com/actions/dependency-review-action/commit/a1d282b36b6f3519aa1f3fc636f609c47dddb294) | [`HARDENING.md`](https://github.com/chainguard-actions/actions-dependency-review-action/blob/v5.0.0/HARDENING.md) |
 
 ## Privacy
 
