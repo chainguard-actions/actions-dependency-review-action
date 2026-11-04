@@ -1,4 +1,0 @@
-fail-on-severity: low
-warn-only: true
-vulnerability-check: true
-license-check: false

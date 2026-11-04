@@ -4,8 +4,13 @@
   "version": "v5.0.0",
   "commit_sha": "a1d282b36b6f3519aa1f3fc636f609c47dddb294",
   "url": "https://github.com/actions/dependency-review-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/actions/dependency-review-action/v5.0.0/sha256-d1650f177968075c03962f5c2a22168d7b9f354f8d55dc7e155a60d59a6e011b.tar.gz",
+    "sha256": "d1650f177968075c03962f5c2a22168d7b9f354f8d55dc7e155a60d59a6e011b",
+    "size_bytes": 2317198
+  }
 }
